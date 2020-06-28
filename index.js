@@ -114,6 +114,7 @@ function createCalendar(year) {
     let currentDate = new Date(firstDayOfYear);
     let calendar = [];
     let dayCount = 0;
+    let lastDate = 0;
 
     lastDayOfYear = new Date(lastDayOfYear);
     lastDayOfYear.setDate(lastDayOfYear.getDate());
@@ -121,10 +122,16 @@ function createCalendar(year) {
     while ( currentDate.getTime() < lastDayOfYear.getTime() ) {
         currentDate = new Date(firstDayOfYear);
         currentDate.setDate(currentDate.getDate() + dayCount);
-        calendar.push(currentDate);
+        currentDate.setUTCHours(0,0,0,0);
+
+        if ( currentDate.getTime() !== lastDate ) {
+            calendar.push(currentDate);
+            lastDate = currentDate.getTime();
+        }
         dayCount++;
     }
 
+    // console.log({calendar});
     return calendar;
 }
 
