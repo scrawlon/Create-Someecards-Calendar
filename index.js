@@ -113,8 +113,8 @@ async function getCalendarObject(calendarYear) {
 }
 
 function createCalendar(year) {
-    const firstDayOfYear = new Date(year, 0, 1).setUTCHours(0,0,0,0);
-    let lastDayOfYear = new Date(year, 11, 31).setUTCHours(0,0,0,0);
+    const firstDayOfYear = new Date(year, 0, 1).setUTCHours(4,0,0,0);
+    let lastDayOfYear = new Date(year, 11, 31).setUTCHours(4,0,0,0);
     let currentDate = new Date(firstDayOfYear);
     let calendar = [];
     let dayCount = 0;
@@ -226,12 +226,16 @@ async function ignoreVisualElements(page) {
         ? parseInt(cliArgs[0]) : 0;
     const calendarYear = cliYear ?  cliYear : new Date().getFullYear();
     const calendarObject = await getCalendarObject(calendarYear);
+    const { birthdayUrl, anniversaryUrl, calendarUrls } = calendarObject;
 
-    console.log({cliArgs});
+    for ( let calendarUrl of calendarUrls ) {
+        const { date, day, holidayUrls, categoryUrl } = calendarUrl;
+        console.log({holidayUrls});
+    }
 
     /* DEBUG: view full calendarObject */
     const util = require('util');
-    console.log(util.inspect(calendarObject, false, null, true));
+    // console.log(util.inspect(calendarObject, false, null, true));
     
     await browser.close();
 })()
