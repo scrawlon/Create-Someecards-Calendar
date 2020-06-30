@@ -105,6 +105,10 @@ async function getCalendarObject(calendarYear) {
         });
     }
 
+    if ( ! calendarObject.calendarUrls.length ) {
+        process.exit(1);
+    }
+
     return Promise.resolve(calendarObject);
 }
 
@@ -218,14 +222,16 @@ async function ignoreVisualElements(page) {
 	/* Improve script speed by not loading visual resources */
     await ignoreVisualElements(page);
 
-    const calendarYear = 2020;
-    const calendarObject = await getCalendarObject(calendarYear)
+    const cliYear = cliArgs[0] !== 'undefined' && parseInt(cliArgs[0]) > 2000 && parseInt(cliArgs[0]) < 2050 
+        ? parseInt(cliArgs[0]) : 0;
+    const calendarYear = cliYear ?  cliYear : new Date().getFullYear();
+    const calendarObject = await getCalendarObject(calendarYear);
+
+    console.log({cliArgs});
 
     /* DEBUG: view full calendarObject */
     const util = require('util');
     console.log(util.inspect(calendarObject, false, null, true));
-    // console.log(calendarObject.birthdayUrl);
-    // console.log(birthdayCategories);
     
     await browser.close();
 })()
