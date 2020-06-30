@@ -47,7 +47,7 @@ async function getCalendarObject(calendarYear) {
     const calendarObject = {
         birthdayUrl: '',
         anniversaryUrl: '',
-        calendarUrls: []
+        dateObjects: []
     };
 
     /* Collect specialty categories */
@@ -93,11 +93,7 @@ async function getCalendarObject(calendarYear) {
 
         /* TODO: deal with Seasonal category */
 
-        // console.log({holidayUrls});
-        // console.log({categoryUrl});
-        // console.log({date, isWeekend});
-
-        calendarObject.calendarUrls.push({
+        calendarObject.dateObjects.push({
             date,
             day,
             holidayUrls,
@@ -105,7 +101,7 @@ async function getCalendarObject(calendarYear) {
         });
     }
 
-    if ( ! calendarObject.calendarUrls.length ) {
+    if ( ! calendarObject.dateObjects.length ) {
         process.exit(1);
     }
 
@@ -114,21 +110,17 @@ async function getCalendarObject(calendarYear) {
 
 function createCalendar(year) {
     const firstDayOfYear = new Date(year, 0, 1).setUTCHours(4,0,0,0);
-    let lastDayOfYear = new Date(year, 11, 31).setUTCHours(4,0,0,0);
     let currentDate = new Date(firstDayOfYear);
     let calendar = [];
     let dayCount = 0;
     let lastDate = 0;
 
-    lastDayOfYear = new Date(lastDayOfYear);
-    lastDayOfYear.setDate(lastDayOfYear.getDate());
-
-    while ( currentDate.getTime() < lastDayOfYear.getTime() ) {
+    while ( currentDate.getUTCFullYear() < year + 1 ) {
         currentDate = new Date(firstDayOfYear);
         currentDate.setDate(currentDate.getDate() + dayCount);
         currentDate.setUTCHours(0,0,0,0);
 
-        if ( currentDate.getTime() !== lastDate ) {
+        if ( currentDate.getTime() > lastDate && currentDate.getUTCFullYear() === year ) {
             calendar.push(currentDate);
             lastDate = currentDate.getTime();
         }
@@ -224,13 +216,13 @@ async function ignoreVisualElements(page) {
 
     const cliYear = cliArgs[0] !== 'undefined' && parseInt(cliArgs[0]) > 2000 && parseInt(cliArgs[0]) < 2050 
         ? parseInt(cliArgs[0]) : 0;
-    const calendarYear = cliYear ?  cliYear : new Date().getFullYear();
+    const calendarYear = cliYear ?  cliYear : new Date().getUTCFullYear();
     const calendarObject = await getCalendarObject(calendarYear);
-    const { birthdayUrl, anniversaryUrl, calendarUrls } = calendarObject;
+    const { birthdayUrl, anniversaryUrl, dateObjects } = calendarObject;
 
-    for ( let calendarUrl of calendarUrls ) {
-        const { date, day, holidayUrls, categoryUrl } = calendarUrl;
-        console.log({holidayUrls});
+    for ( let dateObject of dateObjects ) {
+        const { date, day, holidayUrls, categoryUrl } = dateObject;
+        console.log({date});
     }
 
     /* DEBUG: view full calendarObject */
