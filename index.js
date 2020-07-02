@@ -87,9 +87,10 @@ async function getCalendarObject(calendarYear) {
         const timestamp = date.setUTCHours(0,0,0,0); 
         const month = date.getMonth() + 1;
         const day = date.getDay();
+        const season = getSeason(month);
         const useWeekendCategory = weekendCategories.length && [5].includes(day); // 5 is Friday. 0 is Sunday. 6 is Saturday
         const holidayUrls = getHolidayUrls(eventsByMonth[month], timestamp);
-        const categoryUrl = useWeekendCategory ? getCategoryUrl(weekendCategories) : getCategoryUrl(categories);
+        const categoryUrl = useWeekendCategory ? getCategoryUrl(weekendCategories) : getCategoryUrl(categories, season);
 
         /* TODO: deal with Seasonal category */
 
@@ -140,12 +141,53 @@ function getSpecificCategoryUrls( categories, categoryName ) {
     };
 }
 
-function getCategoryUrl(categories) {
+function getCategoryUrl(categories, stringMatch = '') {
     const categoryTypes = Object.keys(categories);
+    const stringMatchCategories = ['seasonal'];
     const randomCategory = getRandomArrayItem(categoryTypes); 
-    const randomUrl = getRandomArrayItem(categories[randomCategory]);
+    const randomUrl = stringMatch && stringMatchCategories.includes(randomCategory)
+        ? getRandomArrayItem(categories[randomCategory], stringMatch)
+        : getRandomArrayItem(categories[randomCategory]); 
 
-    return getUniqueUrl(randomUrl, getCategoryUrl, categories);
+    return getUniqueUrl(randomUrl, getCategoryUrl, categories, stringMatch);
+}
+
+function getSeason(month) {
+    const seasons = {
+        'spring': [3, 4, 5],
+        'summer': [6, 7, 8], 
+        'fall': [9, 10, 11], 
+        'winter': [12, 1, 2] 
+    }
+
+    for ( const [season, months] of Object.entries(seasons) ) {
+        if ( months.includes(month) ) {
+            return season;
+        }
+    }
+
+    return false;
+}
+
+function getRandomArrayItem(items, stringMatch = '') {
+    const randomItem = items && items[Math.floor(Math.random() * items.length)];
+    const isStringMatch = randomItem && randomItem.includes(stringMatch);
+
+    if ( ( stringMatch && isStringMatch ) || ( ! stringMatch && randomItem ) ) {
+        return randomItem; 
+    }
+
+    return '';
+}
+
+function getUniqueUrl(url, callback, categories, stringMatch) {
+    if ( ! url || usedUrls.includes(url) ) {
+        url = callback(categories, stringMatch);
+    } else {
+        usedUrls.push(url);
+    }
+
+    return url;
 }
 
 function getHolidayUrls(eventsByCurrentMonth, currentDate) {
@@ -172,24 +214,10 @@ function getHolidayUrls(eventsByCurrentMonth, currentDate) {
     return holidayUrls;
 }
 
-function getUniqueRandomUrl(urls, count = 2) {
+function getUniqueRandomUrl(urls) {
     const randomUrl = getRandomArrayItem(urls);
 
     return getUniqueUrl(randomUrl, getUniqueRandomUrl, urls);
-}
-
-function getRandomArrayItem(items) {
-    return items[Math.floor(Math.random() * items.length)]; 
-}
-
-function getUniqueUrl(url, callback, callbackParam) {
-    if ( usedUrls.includes(url) ) {
-        url = callback(callbackParam);
-    } else {
-        usedUrls.push(url);
-    }
-
-    return url;
 }
 
 async function ignoreVisualElements(page) {
@@ -222,12 +250,11 @@ async function ignoreVisualElements(page) {
 
     for ( let dateObject of dateObjects ) {
         const { date, day, holidayUrls, categoryUrl } = dateObject;
-        console.log({date});
     }
 
     /* DEBUG: view full calendarObject */
     const util = require('util');
-    // console.log(util.inspect(calendarObject, false, null, true));
+    console.log(util.inspect(calendarObject, false, null, true));
     
     await browser.close();
 })()
