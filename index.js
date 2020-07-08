@@ -236,6 +236,7 @@ async function ignoreVisualElements(page) {
 }
 
 (async () => {
+    const baseUrl = 'https://www.someecards.com/';
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
 
@@ -248,13 +249,30 @@ async function ignoreVisualElements(page) {
     const calendarObject = await getCalendarObject(calendarYear);
     const { birthdayUrl, anniversaryUrl, dateObjects } = calendarObject;
 
-    for ( let dateObject of dateObjects ) {
+    for ( let [i, dateObject] of dateObjects.entries() ) {
         const { date, day, holidayUrls, categoryUrl } = dateObject;
+
+        if ( i === 0 ) {
+            /* Load Someecard categories from window.__APP_STATE__ JavaScript variable */ 
+            await page.goto(`${baseUrl}${dateObject.categoryUrl}`);
+            const seAppState = await page.evaluate(() => window.__APP_STATE__);
+            const { cards } = seAppState;
+
+            // console.log(dateObject.categoryUrl, cards);
+
+            for ( const [slug, card] of Object.entries(cards) ) {
+                if ( dateObject.categoryUrl.includes(slug) ) {
+                    dateObjects[i].card = cards[slug];
+                }
+            }
+
+            console.log(dateObjects[i]);
+        }
     }
 
     /* DEBUG: view full calendarObject */
     const util = require('util');
-    console.log(util.inspect(calendarObject, false, null, true));
+    // console.log(util.inspect(calendarObject, false, null, true));
     
     await browser.close();
 })()
