@@ -5,6 +5,7 @@ const fetch = require('node-fetch');
 
 const cliArgs = process.argv.slice(2);
 
+const baseUrl = 'https://www.someecards.com/';
 const defaults = {
     someecardsLinksUrl: 'https://scrawlon.com/Get-Someecards-Meme-Links/ecard-links.json'
 };
@@ -105,6 +106,8 @@ async function getCalendarObject(calendarYear) {
     if ( ! calendarObject.dateObjects.length ) {
         process.exit(1);
     }
+
+    fs.writeFileSync(`./calendar-object-${calendarYear}.json`, JSON.stringify(calendarObject));
 
     return Promise.resolve(calendarObject);
 }
@@ -236,7 +239,6 @@ async function ignoreVisualElements(page) {
 }
 
 (async () => {
-    const baseUrl = 'https://www.someecards.com/';
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
 
@@ -246,33 +248,83 @@ async function ignoreVisualElements(page) {
     const cliYear = cliArgs[0] !== 'undefined' && parseInt(cliArgs[0]) > 2000 && parseInt(cliArgs[0]) < 2050 
         ? parseInt(cliArgs[0]) : 0;
     const calendarYear = cliYear ?  cliYear : new Date().getUTCFullYear();
-    const calendarObject = await getCalendarObject(calendarYear);
+
+    let calendarEcards = {};
+    try {
+        calendarEcards = require(`./dist/calendar-ecards-${calendarYear}.json`); 
+        console.log(`${calendarYear} calendar ecards calendar already exists in './dist/calendar-ecards-${calendarYear}.json'`);
+
+        process.exit(1);
+    } catch {
+        console.log(`Creating new ${calendarYear} calendar ecards calendar file in './dist/calendar-ecards-${calendarYear}.json'`);
+    }
+
+    let calendarObject = {};
+    try {
+        calendarObject = require(`./calendar-object-${calendarYear}.json`); 
+        console.log(`${calendarYear} calendar object file found in './calendar-object-${calendarYear}.json'`);
+
+        /* DEBUG: view full calendarObject */
+        // const util = require('util');
+        // console.log(util.inspect(calendarObject, false, null, true));
+        // process.exit(1);
+    } catch {
+        calendarObject = await getCalendarObject(calendarYear);
+        console.log(`Creating new ${calendarYear} calendar object file in './calendar-object-${calendarYear}.json'`);
+    }
     const { birthdayUrl, anniversaryUrl, dateObjects } = calendarObject;
 
     for ( let [i, dateObject] of dateObjects.entries() ) {
         const { date, day, holidayUrls, categoryUrl } = dateObject;
+        const ecard = await getEcardObject( browser, page, categoryUrl );
+
+        if ( ecard ) {
+            calendarObject.dateObjects[i].card = ecard; 
+        }
 
         if ( i === 0 ) {
-            /* Load Someecard categories from window.__APP_STATE__ JavaScript variable */ 
-            await page.goto(`${baseUrl}${dateObject.categoryUrl}`);
-            const seAppState = await page.evaluate(() => window.__APP_STATE__);
-            const { cards } = seAppState;
-
-            // console.log(dateObject.categoryUrl, cards);
-
-            for ( const [slug, card] of Object.entries(cards) ) {
-                if ( dateObject.categoryUrl.includes(slug) ) {
-                    dateObjects[i].card = cards[slug];
-                }
-            }
-
-            console.log(dateObjects[i]);
+            break ;
         }
+
+        // /* Load Someecard categories from window.__APP_STATE__ JavaScript variable */ 
+        // await page.goto(`${baseUrl}${dateObject.categoryUrl}`);
+        // const seAppState = await page.evaluate(() => window.__APP_STATE__);
+        // const { cards } = seAppState;
+
+        // // console.log(dateObject.categoryUrl, cards);
+
+        // for ( const [slug, card] of Object.entries(cards) ) {
+        //     if ( dateObject.categoryUrl.includes(slug) ) {
+        //         calendarObject.dateObjects[i].card = cards[slug];
+        //     }
+        // }
     }
 
-    /* DEBUG: view full calendarObject */
-    const util = require('util');
-    // console.log(util.inspect(calendarObject, false, null, true));
+    async function getEcardObject( browser, page, url ) {
+        let ecard = {};
+
+        /* Load Someecard categories from window.__APP_STATE__ JavaScript variable */ 
+        await page.goto(`${baseUrl}${url}`);
+        const seAppState = await page.evaluate(() => window.__APP_STATE__);
+        const { cards } = seAppState;
+
+        // console.log(dateObject.categoryUrl, cards);
+
+        for ( const [slug, card] of Object.entries(cards) ) {
+            if ( url.includes(slug) ) {
+                ecard = cards[slug];
+            }
+        }
+
+        console.log(ecard);
+
+        return Promise.resolve(ecard);
+    }
+
+    if ( ! fs.existsSync('./dist') ) {
+        fs.mkdirSync('./dist');
+    }
+    // fs.writeFileSync(`./dist/calendar-ecards-${calendarYear}.json`, JSON.stringify(calendarObject));
     
     await browser.close();
 })()
