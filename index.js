@@ -274,30 +274,18 @@ async function ignoreVisualElements(page) {
     }
     const { birthdayUrl, anniversaryUrl, dateObjects } = calendarObject;
 
+    calendarObject.birthdayCard = await getEcardObject( browser, page, birthdayUrl ); 
+    calendarObject.anniversaryCard = await getEcardObject( browser, page, anniversaryUrl ); 
+
     for ( let [i, dateObject] of dateObjects.entries() ) {
         const { date, day, holidayUrls, categoryUrl } = dateObject;
-        const ecard = await getEcardObject( browser, page, categoryUrl );
 
-        if ( ecard ) {
-            calendarObject.dateObjects[i].card = ecard; 
+        calendarObject.dateObjects[i].categoryCard = await getEcardObject( browser, page, categoryUrl ); 
+
+        for ( let [j, holidayUrlObject] of holidayUrls.entries() ) {
+            const { holidayUrl } = holidayUrlObject;
+            calendarObject.dateObjects[i].holidayUrls[j].holidayCard = await getEcardObject( browser, page, holidayUrl ); 
         }
-
-        if ( i === 0 ) {
-            break ;
-        }
-
-        // /* Load Someecard categories from window.__APP_STATE__ JavaScript variable */ 
-        // await page.goto(`${baseUrl}${dateObject.categoryUrl}`);
-        // const seAppState = await page.evaluate(() => window.__APP_STATE__);
-        // const { cards } = seAppState;
-
-        // // console.log(dateObject.categoryUrl, cards);
-
-        // for ( const [slug, card] of Object.entries(cards) ) {
-        //     if ( dateObject.categoryUrl.includes(slug) ) {
-        //         calendarObject.dateObjects[i].card = cards[slug];
-        //     }
-        // }
     }
 
     async function getEcardObject( browser, page, url ) {
@@ -307,8 +295,6 @@ async function ignoreVisualElements(page) {
         await page.goto(`${baseUrl}${url}`);
         const seAppState = await page.evaluate(() => window.__APP_STATE__);
         const { cards } = seAppState;
-
-        // console.log(dateObject.categoryUrl, cards);
 
         for ( const [slug, card] of Object.entries(cards) ) {
             if ( url.includes(slug) ) {
@@ -324,7 +310,8 @@ async function ignoreVisualElements(page) {
     if ( ! fs.existsSync('./dist') ) {
         fs.mkdirSync('./dist');
     }
-    // fs.writeFileSync(`./dist/calendar-ecards-${calendarYear}.json`, JSON.stringify(calendarObject));
+
+    fs.writeFileSync(`./dist/calendar-ecards-${calendarYear}.json`, JSON.stringify(calendarObject));
     
     await browser.close();
 })()
