@@ -314,4 +314,4 @@ async function ignoreVisualElements(page) {
     fs.writeFileSync(`./dist/calendar-ecards-${calendarYear}.json`, JSON.stringify(calendarObject));
     
     await browser.close();
-})()
+})();
