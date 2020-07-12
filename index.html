@@ -11,6 +11,7 @@
             align-items: center;
             flex-direction: column;
             font-size: 1.5vw;
+            overflow-x: hidden;
         }
 
         .ecard {
@@ -102,6 +103,32 @@
             -ms-animation: fadeIn ease forwards 2s;
         }
 
+        .footer {
+            width: 100%;
+            min-height: 400px;
+            margin: 8em 0 0;
+            background: #000;
+            color: #fff;
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .footer a, .footer a:hover, .footer a:active, .footer a:visited {
+            color: #fff;
+        }
+
+        .footer-text {
+            width: 80%;
+            max-width: 650px;
+        }
+
+        .footer-text p {
+            line-height: 1.65em;
+        }
+
         @keyframes fadeIn {
             0% {opacity:0;}
             100% {opacity:1;}
@@ -137,11 +164,32 @@
             .nav-button {
                 font-size: 4.5em;
             }
+
+            .footer-text {
+                width: 96%;
+                max-width: 600px;
+            }
+
+            .footer h1 {
+                font-size: 3.3em;
+            }
+
+            .footer-text p {
+                font-size: 1.95em;
+            }
         }
 
         @media screen and (min-width: 651px) and (max-width: 950px) {
             .nav-button {
                 font-size: 2.5em;
+            }
+
+            .footer h1 {
+                font-size: 2.5em;
+            }
+
+            .footer-text p {
+                font-size: 1.35em;
             }
         }
 
@@ -159,6 +207,23 @@
     </div>
     <div class='ecard'></div>
    
+    <div class="footer">
+        <div class="footer-text">
+            <h1>"Page-A-Day" Calendar (Someecards)</h1>
+            <p>
+                This sample web app mimics physical "Page-A-Day" calendars, 
+                featuring ecards from <a href="https://someecards.com" target="_blank" rel="noopener noreferrer">Someecards.com</a>.
+                Code to build the calendar data is in the open source 
+                <a href="https://github.com/scrawlon/Create-Someecards-Calendar"target="_blank" rel="noopener noreferrer">Create-Someecards-Calendar</a> project.
+            </p>
+            <p>
+                This illustrates a possible use-case for webscraping content with 
+                <a href="https://developers.google.com/web/tools/puppeteer" target="_blank" rel="noopener noreferrer">Puppeteer</a>. 
+                Code to scrape ecard content from Someecards.com comes from the open source 
+                <a href="https://github.com/scrawlon/Get-Someecards-Meme-Links" target="_blank" rel="noopener noreferrer">"Get-Someecards-Meme-Links"</a> project. 
+            </p>
+        </div>
+    </div>
     <script>
         const documentBody = document.querySelector('body');
         const ecardWrapper = documentBody.querySelector('.ecard');
