@@ -177,6 +177,7 @@
             const dateObject = dateObjects.find(dateObject => {
                 const calendarDate = new Date(dateObject.date.replace(/T.*/, '').replace(/-/g, '/'));
             
+                currentDate.setHours(0,0,0);
                 calendarDate.setHours(0,0,0);
 
                 return currentDate.getTime() === calendarDate.getTime();
@@ -184,7 +185,7 @@
             const ecard = dateObject ? getEcardObject(dateObject) : {};
 
             if ( dateObject && ecard && ecardWrapper ) {
-                const ecardDateString = getEcardDateString( dateObject.date );
+                const ecardDateString = getEcardDateString( dateObject.date.replace(/T.*/, '').replace(/-/g, '/') );
                 
                 documentBody.style.backgroundColor = ecard.backgroundColor + '30';
                 ecardWrapper.innerHTML = '';
