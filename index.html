@@ -175,9 +175,11 @@
         function updateEcardWrapper( calendarEcardsData, currentDate ) {
             const { anniversaryCard = {}, birthdayCard = {}, dateObjects = [] } = calendarEcardsData;
             const dateObject = dateObjects.find(dateObject => {
-                const calendarDate = new Date(dateObject.date.replace('0Z', ''));
+                const calendarDate = new Date(dateObject.date.replace(/T.*/, '').replace(/-/g, '/'));
+            
+                calendarDate.setHours(0,0,0);
 
-                return currentDate.setHours(0,0,0) === calendarDate.setHours(0,0,0);
+                return currentDate.getTime() === calendarDate.getTime();
             });
             const ecard = dateObject ? getEcardObject(dateObject) : {};
 
