@@ -64,7 +64,7 @@ async function getCalendarObject(calendarYear) {
     calendarObject.anniversaryUrl = getCategoryUrl(anniversaryCategories);
 
     /* Load config.json options */
-    const { specialHolidayEvents } = config;
+    const { specialHolidayEvents = [] } = config;
 
     for ( let specialHolidayEvent of specialHolidayEvents ) {
         const { startDate, endDate, slug } = specialHolidayEvent;
